@@ -35,22 +35,31 @@ contract VaultFactory is Ownable, IVaultFactory {
         );
         require(libraryAddress != address(0), "Library address is not set");
 
-        bytes4 selector = bytes4(
-            keccak256(bytes("deploy(address,uint256,bytes)"))
-        );
-        (bool success, bytes memory result) = libraryAddress.delegatecall(
-            abi.encodeWithSelector(selector, addressRegistry, vaultId, params)
-        );
+        // Move #3: Gas Optimized Delegatecall with Yul
+        // We save gas by avoiding abi.encode overhead and manual result copying
+        address vaultAddress;
+        bytes4 selector = 0x3d0d8680; // bytes4(keccak256("deploy(address,uint256,bytes)"))
+        
+        address registry = addressRegistry; // Must be local for assembly access
 
-        if (!success) {
-            if (result.length < 68) revert();
-            assembly {
-                result := add(result, 0x04)
+        assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, selector)
+            mstore(add(ptr, 0x04), registry)
+            mstore(add(ptr, 0x24), vaultId)
+            
+            // Copy dynamic bytes 'params'
+            calldatacopy(add(ptr, 0x44), params.offset, params.length)
+            
+            let success := delegatecall(gas(), libraryAddress, ptr, add(0x44, params.length), 0x00, 0x20)
+            
+            if iszero(success) {
+                returndatacopy(0, 0, returndatasize())
+                revert(0, returndatasize())
             }
-            revert(abi.decode(result, (string)));
+            
+            vaultAddress := mload(0x00)
         }
-
-        address vaultAddress = abi.decode(result, (address));
 
         IVeloVault vault = IVeloVault(vaultAddress);
 

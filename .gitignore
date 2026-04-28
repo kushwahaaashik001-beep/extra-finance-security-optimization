@@ -1,24 +1,25 @@
-.env
-build
+# Foundry / Solidity
+out/
+cache/
+broadcast/
+artifacts/
 
-.idea
-.env*
-build/
+# Dependencies
+lib/
 node_modules/
-cache
-yarn.lock
-package-lock.json
-yarn-error.log
 
-node_modules
-coverage
-coverage.json
-typechain
-typechain-types
-.VSCodeCounter/
+# Environment & Secrets
+.env
+.env.*
 
+# Rust (Sentinel)
+sentinel/target/
+**/*.rs.bk
 
-# Hardhat files
-cache
-artifacts
+# OS related
+.DS_Store
+Thumbs.db
 
+# IDEs
+.vscode/
+.idea/

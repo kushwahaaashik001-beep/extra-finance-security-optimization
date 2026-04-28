@@ -1,0 +1,2 @@
+GasBenchmarkTest:test_Benchmark_Borrow() (gas: 119414)
+GasBenchmarkTest:test_Benchmark_Repay() (gas: 102612)
